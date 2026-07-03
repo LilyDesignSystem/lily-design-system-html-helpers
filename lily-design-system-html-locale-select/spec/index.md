@@ -332,5 +332,5 @@ run under vitest + jsdom. Numbering mirrors the Svelte sibling's §7.
 - License: MIT or Apache-2.0 or GPL-2.0 or GPL-3.0 or BSD-3-Clause
   (or contact for other terms)
 - Contact: Joel Parker Henderson &lt;joel@joelparkerhenderson.com&gt;
-- Canonical locale list: [locales.tsv](./locales.tsv) — 436 codes
+- Canonical locale list: [locales.tsv](../locales.tsv) — 436 codes
   with English names
