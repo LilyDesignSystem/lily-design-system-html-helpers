@@ -1,5 +1,5 @@
 /**
- * `<locale-chooser>` — Lily Design System HTML helper.
+ * `<locale-picker>` — Lily Design System HTML helper.
  *
  * See `./spec/index.md` for the canonical contract. This file implements
  * the custom-element class but does NOT register it. The `index.ts`
@@ -23,18 +23,18 @@ export { defaultLocaleLabels, RTL_LANGUAGE_TAGS, RTL_SCRIPT_SUBTAGS };
  *
  * VS15 requests the *text* presentation. Without it browsers pick the
  * colour-emoji font and the globe renders blue, which does not match
- * theme-chooser's monochrome ◑. (U+25D1 needs no selector — it is not
+ * theme-picker's monochrome ◑. (U+25D1 needs no selector — it is not
  * an emoji codepoint and already defaults to text presentation.)
  */
 export const GLOBE_WITH_MERIDIANS = "\u{1F310}\uFE0E";
 
 /** Change-event detail dispatched on every applied locale. */
-export type LocaleChooserChangeDetail = {
+export type LocalePickerChangeDetail = {
     locale: string;
 };
 
 /** Mirrors the observed attributes / properties for typing convenience. */
-export type LocaleChooserProps = {
+export type LocalePickerProps = {
     label: string;
     locales: string[];
     value?: string;
@@ -113,16 +113,16 @@ export function matchNavigatorLanguage(
 
 let uid = 0;
 /** Stable per-instance id prefix; SSR-safe (no Math.random / Date.now). */
-export function nextLocaleChooserId(): string {
+export function nextLocalePickerId(): string {
     uid += 1;
-    return `locale-chooser-${uid}`;
+    return `locale-picker-${uid}`;
 }
 
 // ----------------------------------------------------------------
 // Custom-element class
 // ----------------------------------------------------------------
 
-export class LocaleChooser extends HTMLElement {
+export class LocalePicker extends HTMLElement {
     static get observedAttributes(): string[] {
         return [
             "label",
@@ -155,7 +155,7 @@ export class LocaleChooser extends HTMLElement {
     #activeIndex = -1;
 
     // Stable ids for the button/listbox aria wiring.
-    readonly #baseId = nextLocaleChooserId();
+    readonly #baseId = nextLocalePickerId();
 
     // Typeahead buffer: APG listbox behaviour. Reset after a pause.
     #typeahead = "";
@@ -292,7 +292,7 @@ export class LocaleChooser extends HTMLElement {
      */
     renderButtonContent(): Node {
         const icon = document.createElement("span");
-        icon.className = "locale-chooser-icon";
+        icon.className = "locale-picker-icon";
         icon.setAttribute("aria-hidden", "true");
         icon.textContent = GLOBE_WITH_MERIDIANS;
         return icon;
@@ -415,7 +415,7 @@ export class LocaleChooser extends HTMLElement {
             }
         }
         this.dispatchEvent(
-            new CustomEvent<LocaleChooserChangeDetail>("localechange", {
+            new CustomEvent<LocalePickerChangeDetail>("localechange", {
                 detail: { locale: code },
                 bubbles: true,
                 composed: true,
@@ -616,7 +616,7 @@ export class LocaleChooser extends HTMLElement {
 
         const extraClass = this.getAttribute("class") ?? "";
         const root = document.createElement("div");
-        root.className = `locale-chooser ${extraClass}`.trim();
+        root.className = `locale-picker ${extraClass}`.trim();
         root.addEventListener("focusout", this.#onRootFocusOut);
 
         // The hidden input preserves form participation and the `name`.
@@ -628,7 +628,7 @@ export class LocaleChooser extends HTMLElement {
 
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "locale-chooser-button";
+        button.className = "locale-picker-button";
         button.setAttribute("aria-label", this.label);
         button.setAttribute("aria-haspopup", "listbox");
         button.setAttribute("aria-expanded", "false");
@@ -642,7 +642,7 @@ export class LocaleChooser extends HTMLElement {
         root.appendChild(button);
 
         const list = document.createElement("ul");
-        list.className = "locale-chooser-list";
+        list.className = "locale-picker-list";
         list.id = this.listId;
         list.setAttribute("role", "listbox");
         list.setAttribute("aria-label", this.label);
@@ -653,7 +653,7 @@ export class LocaleChooser extends HTMLElement {
         const optionEls: HTMLLIElement[] = [];
         this.#locales.forEach((locale, i) => {
             const option = document.createElement("li");
-            option.className = "locale-chooser-option";
+            option.className = "locale-picker-option";
             option.id = this.optionId(i);
             option.setAttribute("role", "option");
             option.setAttribute("aria-selected", String(locale === this.value));

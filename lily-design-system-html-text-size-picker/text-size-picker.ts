@@ -1,5 +1,5 @@
 /**
- * `<text-size-chooser>` — Lily Design System HTML helper.
+ * `<text-size-picker>` — Lily Design System HTML helper.
  *
  * See `./spec/index.md` for the canonical contract. This file implements
  * the custom-element class but does NOT register it. The `index.ts`
@@ -16,18 +16,18 @@
  * candidate — U+1F5DB DECREASE FONT SIZE SYMBOL — has no real glyph in
  * common font stacks and falls back to a crude bitmap shape, and it
  * means *decrease* rather than *size*. "A" renders in the page's own
- * font on every platform, stays monochrome like theme-chooser's ◑, and
+ * font on every platform, stays monochrome like theme-picker's ◑, and
  * is the conventional text-size affordance.
  */
 export const LATIN_CAPITAL_LETTER_A = "A";
 
 /** Change-event detail dispatched on every applied size. */
-export type TextSizeChooserChangeDetail = {
+export type TextSizePickerChangeDetail = {
     size: string;
 };
 
 /** Mirrors the observed attributes / properties for typing convenience. */
-export type TextSizeChooserProps = {
+export type TextSizePickerProps = {
     label: string;
     sizes: string[];
     value?: string;
@@ -43,8 +43,8 @@ export type TextSizeChooserProps = {
  * Resolve a size slug to its display label: each hyphen-separated word
  * title-cased, so "x-large" renders as "X Large".
  *
- * Mirrors `themeName` in theme-chooser and `localeName` in
- * locale-chooser. The element's `labelFor` delegates here after
+ * Mirrors `themeName` in theme-picker and `localeName` in
+ * locale-picker. The element's `labelFor` delegates here after
  * consulting `size-labels`, so there is exactly one implementation of
  * the title-casing rule.
  */
@@ -57,13 +57,13 @@ export function sizeName(size: string): string {
 
 let uid = 0;
 /** Stable per-instance id prefix; SSR-safe (no Math.random / Date.now). */
-export function nextTextSizeChooserId(): string {
+export function nextTextSizePickerId(): string {
     uid += 1;
-    return `text-size-chooser-${uid}`;
+    return `text-size-picker-${uid}`;
 }
 
-/** Custom-element class implementing `<text-size-chooser>`. */
-export class TextSizeChooser extends HTMLElement {
+/** Custom-element class implementing `<text-size-picker>`. */
+export class TextSizePicker extends HTMLElement {
     static get observedAttributes(): string[] {
         return [
             "label",
@@ -95,7 +95,7 @@ export class TextSizeChooser extends HTMLElement {
     #activeIndex = -1;
 
     // Stable ids for the button/listbox aria wiring.
-    readonly #baseId = nextTextSizeChooserId();
+    readonly #baseId = nextTextSizePickerId();
 
     // Typeahead buffer: APG listbox behaviour. Reset after a pause.
     #typeahead = "";
@@ -214,7 +214,7 @@ export class TextSizeChooser extends HTMLElement {
      */
     renderButtonContent(): Node {
         const icon = document.createElement("span");
-        icon.className = "text-size-chooser-icon";
+        icon.className = "text-size-picker-icon";
         icon.setAttribute("aria-hidden", "true");
         icon.textContent = LATIN_CAPITAL_LETTER_A;
         return icon;
@@ -320,7 +320,7 @@ export class TextSizeChooser extends HTMLElement {
             }
         }
         this.dispatchEvent(
-            new CustomEvent<TextSizeChooserChangeDetail>("textsizechange", {
+            new CustomEvent<TextSizePickerChangeDetail>("textsizechange", {
                 detail: { size: slug },
                 bubbles: true,
                 composed: true,
@@ -521,7 +521,7 @@ export class TextSizeChooser extends HTMLElement {
 
         const extraClass = this.getAttribute("class") ?? "";
         const root = document.createElement("div");
-        root.className = `text-size-chooser ${extraClass}`.trim();
+        root.className = `text-size-picker ${extraClass}`.trim();
         root.addEventListener("focusout", this.#onRootFocusOut);
 
         // The hidden input preserves form participation and the `name`.
@@ -533,7 +533,7 @@ export class TextSizeChooser extends HTMLElement {
 
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "text-size-chooser-button";
+        button.className = "text-size-picker-button";
         button.setAttribute("aria-label", this.label);
         button.setAttribute("aria-haspopup", "listbox");
         button.setAttribute("aria-expanded", "false");
@@ -547,7 +547,7 @@ export class TextSizeChooser extends HTMLElement {
         root.appendChild(button);
 
         const list = document.createElement("ul");
-        list.className = "text-size-chooser-list";
+        list.className = "text-size-picker-list";
         list.id = this.listId;
         list.setAttribute("role", "listbox");
         list.setAttribute("aria-label", this.label);
@@ -558,7 +558,7 @@ export class TextSizeChooser extends HTMLElement {
         const optionEls: HTMLLIElement[] = [];
         this.#sizes.forEach((size, i) => {
             const option = document.createElement("li");
-            option.className = "text-size-chooser-option";
+            option.className = "text-size-picker-option";
             option.id = this.optionId(i);
             option.setAttribute("role", "option");
             option.setAttribute("aria-selected", String(size === this.value));

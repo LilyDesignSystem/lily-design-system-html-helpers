@@ -1,5 +1,5 @@
 /**
- * `<share-chooser>` — Lily Design System HTML helper.
+ * `<share-picker>` — Lily Design System HTML helper.
  *
  * See `./spec/index.md` for the canonical contract. This file implements
  * the custom-element class but does NOT register it. The `index.ts`
@@ -20,8 +20,8 @@
  *
  * An in-font arrow rather than a pictograph, matching the other helpers'
  * rule: it renders in the page's own font on every platform and stays
- * monochrome alongside theme-chooser's ◑, locale-chooser's 🌐 and
- * text-size-chooser's "A".
+ * monochrome alongside theme-picker's ◑, locale-picker's 🌐 and
+ * text-size-picker's "A".
  */
 export const BLACK_RIGHTWARDS_ARROWHEAD = "\u27A4";
 
@@ -51,7 +51,7 @@ export type ShareTarget = {
 export type ShareStrategy = "auto" | "native" | "list";
 
 /** Detail dispatched on the `share` CustomEvent. */
-export type ShareChooserShareDetail = {
+export type SharePickerShareDetail = {
     /** The chosen target's `id`. */
     targetId: string;
     /** The URL that was shared. */
@@ -59,13 +59,13 @@ export type ShareChooserShareDetail = {
 };
 
 /** Detail dispatched on the `copy` and `nativeshare` CustomEvents. */
-export type ShareChooserUrlDetail = {
+export type SharePickerUrlDetail = {
     /** The URL that was copied / handed to the native sheet. */
     url: string;
 };
 
 /** Mirrors the observed attributes / properties for typing convenience. */
-export type ShareChooserProps = {
+export type SharePickerProps = {
     label: string;
     /** Property-only: `href` is a function, so this cannot be an attribute. */
     targets?: ShareTarget[];
@@ -99,13 +99,13 @@ export function canCopy(): boolean {
 
 let uid = 0;
 /** Stable per-instance id prefix; SSR-safe (no Math.random / Date.now). */
-export function nextShareChooserId(): string {
+export function nextSharePickerId(): string {
     uid += 1;
-    return `share-chooser-${uid}`;
+    return `share-picker-${uid}`;
 }
 
-/** Custom-element class implementing `<share-chooser>`. */
-export class ShareChooser extends HTMLElement {
+/** Custom-element class implementing `<share-picker>`. */
+export class SharePicker extends HTMLElement {
     static get observedAttributes(): string[] {
         return [
             "label",
@@ -144,7 +144,7 @@ export class ShareChooser extends HTMLElement {
     #status = "";
 
     // Stable id for the button/list aria wiring.
-    readonly #baseId = nextShareChooserId();
+    readonly #baseId = nextSharePickerId();
 
     #onDocumentClick = (event: MouseEvent): void => {
         if (!this.#open) return;
@@ -253,7 +253,7 @@ export class ShareChooser extends HTMLElement {
         return this.#status;
     }
 
-    /** id of the rendered `<ul class="share-chooser-list">`. */
+    /** id of the rendered `<ul class="share-picker-list">`. */
     get listId(): string {
         return `${this.#baseId}-list`;
     }
@@ -286,7 +286,7 @@ export class ShareChooser extends HTMLElement {
      */
     renderButtonContent(): Node {
         const icon = document.createElement("span");
-        icon.className = "share-chooser-icon";
+        icon.className = "share-picker-icon";
         icon.setAttribute("aria-hidden", "true");
         icon.textContent = BLACK_RIGHTWARDS_ARROWHEAD;
         return icon;
@@ -355,7 +355,7 @@ export class ShareChooser extends HTMLElement {
         if (!this.#listEl) return [];
         return [
             ...this.#listEl.querySelectorAll<HTMLElement>(
-                ".share-chooser-target, .share-chooser-copy",
+                ".share-picker-target, .share-picker-copy",
             ),
         ];
     }
@@ -374,7 +374,7 @@ export class ShareChooser extends HTMLElement {
             await navigator.share({ url: shareUrl, title: this.shareTitle, text: this.text });
             this.onNativeShare?.(shareUrl);
             this.dispatchEvent(
-                new CustomEvent<ShareChooserUrlDetail>("nativeshare", {
+                new CustomEvent<SharePickerUrlDetail>("nativeshare", {
                     detail: { url: shareUrl },
                     bubbles: true,
                     composed: true,
@@ -478,7 +478,7 @@ export class ShareChooser extends HTMLElement {
         const shareUrl = this.currentUrl();
         this.onShare?.(target.id, shareUrl);
         this.dispatchEvent(
-            new CustomEvent<ShareChooserShareDetail>("share", {
+            new CustomEvent<SharePickerShareDetail>("share", {
                 detail: { targetId: target.id, url: shareUrl },
                 bubbles: true,
                 composed: true,
@@ -494,7 +494,7 @@ export class ShareChooser extends HTMLElement {
             await navigator.clipboard.writeText(shareUrl);
             this.onCopy?.(shareUrl);
             this.dispatchEvent(
-                new CustomEvent<ShareChooserUrlDetail>("copy", {
+                new CustomEvent<SharePickerUrlDetail>("copy", {
                     detail: { url: shareUrl },
                     bubbles: true,
                     composed: true,
@@ -560,14 +560,14 @@ export class ShareChooser extends HTMLElement {
 
         const extraClass = this.getAttribute("class") ?? "";
         const root = document.createElement("div");
-        root.className = `share-chooser ${extraClass}`.trim();
+        root.className = `share-picker ${extraClass}`.trim();
         root.addEventListener("focusout", this.#onRootFocusOut);
 
         const button = document.createElement("button");
         button.type = "button";
         // Follows the catalog's `{helper}-button` convention, same as the
         // sibling helpers.
-        button.className = "share-chooser-button";
+        button.className = "share-picker-button";
         button.setAttribute("aria-label", this.label);
         button.setAttribute("aria-expanded", "false");
         button.setAttribute("aria-controls", this.listId);
@@ -577,7 +577,7 @@ export class ShareChooser extends HTMLElement {
         root.appendChild(button);
 
         const list = document.createElement("ul");
-        list.className = "share-chooser-list";
+        list.className = "share-picker-list";
         list.id = this.listId;
         list.setAttribute("hidden", "");
         list.addEventListener("keydown", this.#onListKeydown);
@@ -589,13 +589,13 @@ export class ShareChooser extends HTMLElement {
         const targetEls: HTMLAnchorElement[] = [];
         this.#targets.forEach((target) => {
             const item = document.createElement("li");
-            item.className = "share-chooser-list-item";
+            item.className = "share-picker-list-item";
 
             // A real link, not role="menuitem": these ARE navigation, and
             // menuitem would strip middle-click, open-in-new-tab and
             // copy-link-address.
             const a = document.createElement("a");
-            a.className = "share-chooser-target";
+            a.className = "share-picker-target";
             a.setAttribute("data-target-id", target.id);
             a.setAttribute("href", target.href(shareUrl, title, text));
             if (target.newTab !== false) {
@@ -614,10 +614,10 @@ export class ShareChooser extends HTMLElement {
         // default would be a hardcoded English string.
         if (this.copyLabel) {
             const item = document.createElement("li");
-            item.className = "share-chooser-list-item";
+            item.className = "share-picker-list-item";
             const copyEl = document.createElement("button");
             copyEl.type = "button";
-            copyEl.className = "share-chooser-copy";
+            copyEl.className = "share-picker-copy";
             copyEl.textContent = this.copyLabel;
             copyEl.addEventListener("click", () => void this.#copyUrl());
             item.appendChild(copyEl);
@@ -629,7 +629,7 @@ export class ShareChooser extends HTMLElement {
         // announced. Empty until something happens, so it stays silent on
         // load; aria-live announces mutations only.
         const status = document.createElement("p");
-        status.className = "share-chooser-status";
+        status.className = "share-picker-status";
         status.setAttribute("aria-live", "polite");
         status.textContent = "";
         root.appendChild(status);
